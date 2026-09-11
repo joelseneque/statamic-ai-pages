@@ -69,9 +69,10 @@ class ValueCoercer
         $out = [];
 
         foreach ($values as $handle => $value) {
-            // `type` is the set discriminator, carried through untouched.
-            if ($handle === 'type') {
-                $out['type'] = $value;
+            // Structural keys, not blueprint fields — carry them through
+            // rather than warning about them.
+            if (in_array($handle, ['type', 'id', 'enabled'], true)) {
+                $out[$handle] = $value;
 
                 continue;
             }
@@ -152,7 +153,7 @@ class ValueCoercer
     protected function grid(mixed $value, array $spec, string $context): array
     {
         return collect(Arr::wrap($value))
-            ->filter('is_array')
+            ->filter(fn ($item) => is_array($item))
             ->map(fn ($row) => array_merge(
                 ['id' => Id::generate()],
                 $this->coerce($row, $spec['fields'] ?? [], $context)
@@ -170,7 +171,7 @@ class ValueCoercer
         $sets = $spec['_sets'] ?? [];
 
         return collect(Arr::wrap($value))
-            ->filter('is_array')
+            ->filter(fn ($item) => is_array($item))
             ->map(function ($item) use ($sets) {
                 $type = $item['type'] ?? null;
 

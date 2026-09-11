@@ -18,6 +18,14 @@ class ServiceProvider extends AddonServiceProvider
         Actions\TweakWithAi::class,
     ];
 
+    /**
+     * Shipped as plain CSS and auto-published to public/vendor on install, so
+     * a site never has to rebuild its Control Panel assets to use this addon.
+     */
+    protected $stylesheets = [
+        __DIR__.'/../resources/css/ai-pages.css',
+    ];
+
     protected $commands = [
         Commands\SweepCommand::class,
         Commands\BuildPageCommand::class,

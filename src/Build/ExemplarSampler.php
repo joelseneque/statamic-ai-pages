@@ -87,7 +87,7 @@ class ExemplarSampler
         return Entry::query()
             ->where('collection', $collection)
             ->when($site, fn ($q) => $q->where('site', $site))
-            ->where('status', 'published')
+            ->whereStatus('published')
             ->limit(120)
             ->get();
     }

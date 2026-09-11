@@ -16,11 +16,13 @@ Statamic site is built. This addon works at the level your site actually works a
 
 - **It reads your blueprints.** Every block, every field, every conditional. Imports and fieldsets resolved.
 - **It reads your content.** Which blocks you really use, in what order, with which settings, and what node
-  attributes you stamp on paragraphs — measured, not guessed.
+  attributes you stamp on paragraphs — measured, not guessed, and measured from *published* entries only so its
+  own drafts can never teach it a bad habit.
 - **It fills in what it measured.** All the layout boilerplate (`inside_container_width`, `mt-default`,
   `animate: true`) is applied deterministically and left out of the prompt entirely.
 - **It writes structured field data**, validated against a JSON Schema generated from your blueprint, so it
-  can't invent a field name or put a string where an enum goes.
+  can't invent a field name or put a string where an enum goes. Where the blueprint and your content disagree
+  about a field's vocabulary, the weight of what you've actually stored decides it.
 
 ## Install
 
@@ -37,6 +39,14 @@ Optionally publish the config:
 
 ```bash
 php artisan vendor:publish --tag=ai-pages-config
+```
+
+**No build step.** The Control Panel styles ship as plain CSS and are published to
+`public/vendor/ai-pages` automatically on install — you never need to rebuild your site's CP assets. If the
+pages ever look unstyled, re-publish them:
+
+```bash
+php artisan vendor:publish --tag=ai-pages --force
 ```
 
 ## First run — the sweep

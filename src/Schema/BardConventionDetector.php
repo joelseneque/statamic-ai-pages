@@ -37,16 +37,31 @@ class BardConventionDetector
 
     protected array $sequences = [];
 
+    /** Top-level entry fields aren't part of any set, so they get their own bucket. */
+    public const ROOT = '__root__';
+
     public function analyse(string $collection, ?string $site = null, int $limit = 150): array
     {
+        // Published only, deliberately. Drafts include this addon's own output,
+        // and letting generated pages teach the conventions would compound any
+        // mistake it made. Published copy is what a human has signed off.
         $entries = Entry::query()
             ->where('collection', $collection)
             ->when($site, fn ($q) => $q->where('site', $site))
+            ->whereStatus('published')
             ->limit($limit)
             ->get();
 
         foreach ($entries as $entry) {
-            foreach ($entry->data()->all() as $handle => $value) {
+            $data = $entry->data()->all();
+
+            // Top-level fields never pass through recordSet(), so their values
+            // would otherwise go unmeasured — and the blueprint alone can be
+            // wrong about them (a colour dictionary keyed on hex while the
+            // site stores swatch names).
+            $this->recordSet(self::ROOT, self::ROOT, $data);
+
+            foreach ($data as $handle => $value) {
                 if (is_array($value)) {
                     $this->walk($value, $handle);
                 }
@@ -59,6 +74,8 @@ class BardConventionDetector
                 $this->sequences[] = $sequence;
             }
         }
+
+        unset($this->setCounts[self::ROOT], $this->setPlacements[self::ROOT]);
 
         return [
             'entries_analysed' => $entries->count(),

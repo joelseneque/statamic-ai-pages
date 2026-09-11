@@ -107,7 +107,12 @@ class Hydrator
             return [];
         }
 
-        $schema = $this->schemas->forFields($fields);
+        $schema = $this->schemas
+            ->withMeasuredValues($this->conventions->fieldValues(
+                $request->collection,
+                \Joelseneque\AiPages\Schema\BardConventionDetector::ROOT,
+            ))
+            ->forFields($fields);
 
         if (empty($schema['properties'])) {
             return [];

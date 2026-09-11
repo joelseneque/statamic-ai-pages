@@ -2,76 +2,76 @@
 @section('title', 'Build a page')
 
 @section('content')
-<div class="max-w-3xl">
-    <h1 class="mb-6">Build a page</h1>
+<div class="aip">
+    <div class="aip-header">
+        <div>
+            <h1 class="aip-title">Build a page</h1>
+            <p class="aip-lede">It plans the page against this site's real blocks, then fills each one in.</p>
+        </div>
+    </div>
 
     @unless ($instructionsReady)
         <x-ai-pages::notice type="warning">
             AI Pages hasn't read this site yet, so it has no profile or tone of voice to work from. It will still
             build, but the output will be generic.
-            <a class="underline font-medium" href="{{ cp_route('ai-pages.instructions') }}">Run the sweep first →</a>
+            <a href="{{ cp_route('ai-pages.instructions') }}">Run the sweep first →</a>
         </x-ai-pages::notice>
     @endunless
 
     @if ($errors->any())
         <x-ai-pages::notice type="error">
-            <ul class="list-disc ml-4">
-                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </x-ai-pages::notice>
     @endif
 
     <form method="POST" action="{{ cp_route('ai-pages.build.store') }}" enctype="multipart/form-data">
         @csrf
 
-        <div class="card p-6 mb-6">
-            <h2 class="mb-4">What are we building from?</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <div class="aip-card">
+            <h2 class="aip-h2">What are we building from?</h2>
+            <p class="aip-hint" style="margin-bottom:1rem">
                 Anything goes — paste the copy, drop in a Word doc or PDF, link a Google Doc, or point at a page
-                that already exists somewhere. Combine as many as you like.
+                that already exists. Combine as many as you like.
             </p>
 
-            <div class="mb-4">
-                <label class="font-medium text-sm block mb-1">Paste text</label>
-                <textarea name="text" rows="10" class="input-text font-mono text-sm"
+            <div class="aip-field">
+                <label class="aip-label" for="aip-text">Paste text</label>
+                <textarea id="aip-text" name="text" rows="10" class="aip-textarea aip-textarea--mono"
                     placeholder="Paste the copy, an outline, or a brief…">{{ old('text') }}</textarea>
             </div>
 
-            <div class="mb-4">
-                <label class="font-medium text-sm block mb-1">Links</label>
-                <textarea name="urls" rows="3" class="input-text text-sm"
+            <div class="aip-field">
+                <label class="aip-label" for="aip-urls">Links</label>
+                <textarea id="aip-urls" name="urls" rows="3" class="aip-textarea"
                     placeholder="https://docs.google.com/document/d/…&#10;https://example.com/the-old-page">{{ old('urls') }}</textarea>
-                <p class="text-xs text-gray-500 mt-1">
-                    One per line. Google Docs, Sheets and Slides need to be shared as "anyone with the link can view".
-                </p>
+                <p class="aip-hint">One per line. Google Docs, Sheets and Slides must be shared as “anyone with the link can view”.</p>
             </div>
 
-            <div>
-                <label class="font-medium text-sm block mb-1">Files</label>
-                <input type="file" name="files[]" multiple class="text-sm"
+            <div class="aip-field">
+                <label class="aip-label" for="aip-files">Files</label>
+                <input id="aip-files" type="file" name="files[]" multiple class="aip-file"
                     accept="{{ collect($allowedExtensions)->map(fn($e) => '.'.$e)->implode(',') }}">
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="aip-hint">
                     Up to 10 files, {{ $maxUploadMb }}MB each. PDFs and images are read directly, so a design
-                    export or a screenshot works as well as a document.
+                    export or a screenshot works as well as a document does.
                 </p>
             </div>
         </div>
 
-        <div class="card p-6 mb-6">
-            <h2 class="mb-4">How much licence?</h2>
+        <div class="aip-card">
+            <h2 class="aip-h2">How much licence?</h2>
 
-            <div class="space-y-3">
+            <div class="aip-choices">
                 @foreach ($modes as $value => $label)
-                    <label class="flex items-start gap-3 cursor-pointer">
-                        <input type="radio" name="mode" value="{{ $value }}"
-                            @checked(old('mode', 'polish') === $value) class="mt-1">
+                    <label class="aip-choice">
+                        <input type="radio" name="mode" value="{{ $value }}" @checked(old('mode', 'polish') === $value)>
                         <span>
-                            <span class="font-medium text-sm">{{ $label }}</span>
-                            <span class="block text-xs text-gray-500">
+                            <span class="aip-choice__title">{{ $label }}</span>
+                            <span class="aip-choice__hint">
                                 @switch($value)
                                     @case('verbatim')
-                                        Your words, untouched. It only decides which block each part goes in.
-                                        Output is checked back against the source and anything that drifted is flagged.
+                                        Your words, untouched. It only decides which block each part goes in, then
+                                        checks the result back against the source and flags anything that drifted.
                                         @break
                                     @case('polish')
                                         Keeps your sentences and meaning; fixes grammar, spelling and headings.
@@ -86,13 +86,13 @@
             </div>
         </div>
 
-        <div class="card p-6 mb-6">
-            <h2 class="mb-4">Where does it go?</h2>
+        <div class="aip-card">
+            <h2 class="aip-h2">Where does it go?</h2>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="aip-grid aip-field">
                 <div>
-                    <label class="font-medium text-sm block mb-1">Collection</label>
-                    <select name="collection" class="input-text">
+                    <label class="aip-label" for="aip-collection">Collection</label>
+                    <select id="aip-collection" name="collection" class="aip-select">
                         @foreach ($collections as $handle => $title)
                             <option value="{{ $handle }}" @selected(old('collection') === $handle)>{{ $title }}</option>
                         @endforeach
@@ -101,8 +101,8 @@
 
                 @if ($sites->count() > 1)
                     <div>
-                        <label class="font-medium text-sm block mb-1">Site</label>
-                        <select name="site" class="input-text">
+                        <label class="aip-label" for="aip-site">Site</label>
+                        <select id="aip-site" name="site" class="aip-select">
                             @foreach ($sites as $site)
                                 <option value="{{ $site['handle'] }}">{{ $site['name'] }}</option>
                             @endforeach
@@ -111,28 +111,28 @@
                 @endif
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="aip-grid aip-field">
                 <div>
-                    <label class="font-medium text-sm block mb-1">Title <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input type="text" name="title" value="{{ old('title') }}" class="input-text"
+                    <label class="aip-label" for="aip-title">Title <span class="aip-label__optional">(optional)</span></label>
+                    <input id="aip-title" type="text" name="title" value="{{ old('title') }}" class="aip-input"
                         placeholder="Leave blank and it will choose one">
                 </div>
                 <div>
-                    <label class="font-medium text-sm block mb-1">Max sections <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input type="number" name="max_sections" value="{{ old('max_sections') }}" min="1" max="30" class="input-text">
+                    <label class="aip-label" for="aip-max">Max sections <span class="aip-label__optional">(optional)</span></label>
+                    <input id="aip-max" type="number" name="max_sections" value="{{ old('max_sections') }}" min="1" max="30" class="aip-input">
                 </div>
             </div>
 
-            <div>
-                <label class="font-medium text-sm block mb-1">Anything else it should know?</label>
-                <textarea name="brief" rows="3" class="input-text text-sm"
-                    placeholder="e.g. This replaces the old services page. Keep the FAQ block at the bottom. Link to /contact-us for the CTA.">{{ old('brief') }}</textarea>
+            <div class="aip-field">
+                <label class="aip-label" for="aip-brief">Anything else it should know?</label>
+                <textarea id="aip-brief" name="brief" rows="3" class="aip-textarea"
+                    placeholder="e.g. This replaces the old services page. Keep the FAQ block at the bottom. Link the CTA to /contact-us.">{{ old('brief') }}</textarea>
             </div>
         </div>
 
-        <div class="flex items-center justify-between">
-            <p class="text-xs text-gray-500">Saved as an unpublished draft. Nothing goes live.</p>
-            <button type="submit" class="btn-primary">Build the draft</button>
+        <div class="aip-actions aip-actions--split">
+            <p class="aip-footnote">Saved as an unpublished draft. Nothing goes live.</p>
+            <button type="submit" class="aip-btn aip-btn--primary">Build the draft</button>
         </div>
     </form>
 </div>

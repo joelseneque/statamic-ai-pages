@@ -22,6 +22,9 @@ class JsonSchemaBuilder
         'section', 'tab', 'spacer', 'hidden',
     ];
 
+    /** Above this many entries, listing them all would swamp the prompt. */
+    public const MAX_ENTRY_OPTIONS = 150;
+
     /** [fieldHandle => [value => count]] measured from the site's own content. */
     protected array $measured = [];
 
@@ -132,11 +135,7 @@ class JsonSchemaBuilder
                     .($field['container'] ?? 'assets').' container. Leave out if you have no real asset to use.',
             ]),
 
-            'entries' => $this->cardinality($field, $schema, [
-                'type' => 'string',
-                'description' => 'Slug or exact title of an existing entry in: '
-                    .implode(', ', Arr::wrap($field['collections'] ?? ['any collection'])),
-            ]),
+            'entries' => $this->cardinality($field, $schema, $this->entryItem($field)),
 
             'terms' => $this->cardinality($field, $schema, [
                 'type' => 'string',
@@ -193,30 +192,33 @@ class JsonSchemaBuilder
             ->map(fn ($o) => (string) $o['value'])
             ->values();
 
-        $observed = collect(array_keys($this->measured[$field['handle']] ?? []))
-            ->reject(fn ($v) => in_array($v, ['__null__', '__true__', '__false__'], true))
-            ->values();
+        $observed = collect($this->measured[$field['handle']] ?? [])
+            ->reject(fn ($count, $value) => in_array($value, ['__null__', '__true__', '__false__'], true));
 
         if ($declared->isEmpty()) {
             return $observed->isEmpty()
                 ? ['type' => 'string']
-                : ['type' => 'string', 'enum' => $observed->all()];
+                : ['type' => 'string', 'enum' => $observed->keys()->all()];
         }
 
         if ($observed->isEmpty()) {
             return ['type' => 'string', 'enum' => $declared->all()];
         }
 
-        // If what the site stores overlaps the declared options, the blueprint
-        // is the right vocabulary and any odd stored value is legacy junk we
-        // shouldn't reproduce. If there's no overlap at all, the blueprint is
-        // lying — a dictionary keyed on hex while the site stores names, say —
-        // so trust the content.
+        // Decide which vocabulary is real by weight, not by presence. If most
+        // of what the site has actually stored is a declared option, the
+        // blueprint is right and the odd stored value is legacy junk we should
+        // not reproduce. If most of it isn't, the blueprint is lying — a colour
+        // dictionary keyed on hex while entries store swatch names, say — and
+        // the content wins. Weighing it stops one stray value flipping the
+        // decision either way.
+        $recognised = $observed->filter(fn ($count, $value) => $declared->contains($value))->sum();
+
         return [
             'type' => 'string',
-            'enum' => $declared->intersect($observed)->isNotEmpty()
+            'enum' => $recognised >= $observed->sum() / 2
                 ? $declared->all()
-                : $observed->all(),
+                : $observed->keys()->all(),
         ];
     }
 
@@ -238,6 +240,51 @@ class JsonSchemaBuilder
             'items' => $item,
             'maxItems' => $max,
         ], fn ($v) => $v !== null);
+    }
+
+    /**
+     * Entry pickers get the real, selectable entries where the collection is
+     * small enough to list. Without this the model writes plausible-sounding
+     * titles that match nothing and the whole field gets dropped — which is
+     * exactly what happened to every FAQ block before this existed.
+     */
+    protected function entryItem(array $field): array
+    {
+        $collections = Arr::wrap($field['collections'] ?? []);
+
+        $item = [
+            'type' => 'string',
+            'description' => 'Slug of an existing entry in: '
+                .($collections ? implode(', ', $collections) : 'any collection'),
+        ];
+
+        if (! $collections || ! class_exists(\Statamic\Facades\Entry::class)) {
+            return $item;
+        }
+
+        try {
+            $entries = \Statamic\Facades\Entry::query()
+                ->whereIn('collection', $collections)
+                ->limit(self::MAX_ENTRY_OPTIONS + 1)
+                ->get();
+        } catch (\Throwable) {
+            return $item;
+        }
+
+        if ($entries->isEmpty() || $entries->count() > self::MAX_ENTRY_OPTIONS) {
+            return $item;
+        }
+
+        // Titles go in the description so the choice can be made on meaning;
+        // the enum keeps the value itself valid.
+        $options = $entries->mapWithKeys(fn ($entry) => [$entry->slug() => (string) $entry->get('title')]);
+
+        return [
+            'type' => 'string',
+            'enum' => $options->keys()->all(),
+            'description' => $item['description'].'. Choose only from these, by slug: '
+                .$options->map(fn ($title, $slug) => "{$slug} = \"{$title}\"")->implode('; '),
+        ];
     }
 
     /**

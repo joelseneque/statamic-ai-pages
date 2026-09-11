@@ -133,7 +133,8 @@ class SiteScanner
     protected function renderTree(array $items, int $depth = 0): string
     {
         return collect($items)->map(function ($item) use ($depth) {
-            $line = str_repeat('  ', $depth).'- '.$item['title'].($item['url'] ? " ({$item['url']})" : '');
+            $url = $item['url'] ?? null;
+            $line = str_repeat('  ', $depth).'- '.($item['title'] ?? 'Untitled').($url ? " ({$url})" : '');
 
             if ($children = $item['children'] ?? null) {
                 $line .= "\n".$this->renderTree($children, $depth + 1);
@@ -155,7 +156,7 @@ class SiteScanner
                 $entries = Entry::query()
                     ->where('collection', $handle)
                     ->where('site', $site)
-                    ->where('status', 'published')
+                    ->whereStatus('published')
                     ->limit(200)
                     ->get();
 
