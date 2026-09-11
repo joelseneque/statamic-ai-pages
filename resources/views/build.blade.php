@@ -10,6 +10,10 @@
         </div>
     </div>
 
+    @if ($runsInline)
+        <x-ai-pages::inline-warning :suggested="$suggestedQueue" />
+    @endif
+
     @unless ($instructionsReady)
         <x-ai-pages::notice type="warning">
             AI Pages hasn't read this site yet, so it has no profile or tone of voice to work from. It will still

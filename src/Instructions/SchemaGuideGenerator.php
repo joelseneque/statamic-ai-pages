@@ -6,6 +6,7 @@ use Joelseneque\AiPages\Anthropic\Client;
 use Joelseneque\AiPages\Schema\BardConventionDetector;
 use Joelseneque\AiPages\Schema\BlueprintCompiler;
 use Joelseneque\AiPages\Schema\Conventions;
+use Joelseneque\AiPages\Build\CompanionCollections;
 use Joelseneque\AiPages\Schema\SetCatalogue;
 
 /**
@@ -41,6 +42,15 @@ class SchemaGuideGenerator
 
         $evidence = $detector->toMarkdown($analysis);
 
+        foreach ($compiled['blueprints'] as $bp) {
+            if ($companions = CompanionCollections::describe($bp)) {
+                $evidence .= "\n\n## Blocks that point at other collections\n\n{$companions}\n\n"
+                    ."These relationships allow new entries to be created, so a page can bring its own with it.";
+
+                break;
+            }
+        }
+
         $markdown = $this->client->text(
             system: <<<'SYSTEM'
             You are writing the editorial handbook for one collection of a Statamic site. Another system will
@@ -61,6 +71,10 @@ class SchemaGuideGenerator
             - **Heading discipline** — the heading levels used, and where.
             - **Pairings and pitfalls** — blocks that belong together, blocks that clash, fields that are easy to
               fill in wrongly.
+            - **Content that lives elsewhere** — where a block points at entries in another collection rather than
+              holding the content itself, say so plainly: which collection, how many a page typically references,
+              and whether a new page normally needs new ones written or reuses what exists. This is the thing an
+              outsider gets wrong most often, because the content looks like it is on the page when it is not.
 
             Rules:
             - Ground every claim in the evidence. If a block is defined but never used, say that rather than

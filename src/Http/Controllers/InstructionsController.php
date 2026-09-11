@@ -7,6 +7,7 @@ use Joelseneque\AiPages\Instructions\InstructionRepository;
 use Joelseneque\AiPages\Instructions\InstructionSweep;
 use Joelseneque\AiPages\Jobs\JobStore;
 use Joelseneque\AiPages\Jobs\SweepJob;
+use Joelseneque\AiPages\Support\QueueStatus;
 
 class InstructionsController extends Controller
 {
@@ -18,6 +19,8 @@ class InstructionsController extends Controller
             'inventory' => $instructions->inventory(),
             'collections' => $sweep->collections(),
             'configured' => app(\Joelseneque\AiPages\Anthropic\Client::class)->configured(),
+            'runsInline' => QueueStatus::runsInline(),
+            'suggestedQueue' => QueueStatus::suggestedConnection(),
         ]);
     }
 

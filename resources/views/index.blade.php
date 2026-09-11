@@ -21,6 +21,10 @@ ANTHROPIC_MODEL={{ $model }}</code>
         </x-ai-pages::notice>
     @endunless
 
+    @if ($configured && $runsInline)
+        <x-ai-pages::inline-warning :suggested="$suggestedQueue" />
+    @endif
+
     @if ($configured && ! $instructionsReady)
         <x-ai-pages::notice type="warning">
             <strong>This site hasn't been read yet.</strong>
@@ -84,6 +88,10 @@ ANTHROPIC_MODEL={{ $model }}</code>
                     <div class="aip-row">
                         <span>Site read</span>
                         <span class="aip-status aip-status--{{ $instructionsReady ? 'completed' : 'awaiting_approval' }}">{{ $instructionsReady ? 'done' : 'not yet' }}</span>
+                    </div>
+                    <div class="aip-row">
+                        <span>Queue</span>
+                        <span class="aip-status aip-status--{{ $runsInline ? 'failed' : 'completed' }}">{{ $runsInline ? 'inline — will time out' : 'worker' }}</span>
                     </div>
                     <div class="aip-row">
                         <span>Model</span>

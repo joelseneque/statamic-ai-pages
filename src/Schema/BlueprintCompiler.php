@@ -94,7 +94,9 @@ class BlueprintCompiler
         ], fn ($v) => $v !== null && $v !== [] && $v !== '');
 
         // Relationship targets — the model needs to know what it may point at.
-        foreach (['collections', 'taxonomies', 'container', 'folder', 'dictionary', 'mode'] as $key) {
+        // `create` is the site telling us this relationship may spawn new
+        // entries — the same signal the CP uses to offer an inline create.
+        foreach (['collections', 'taxonomies', 'container', 'folder', 'dictionary', 'mode', 'create'] as $key) {
             if ($value = Arr::get($config, $key)) {
                 $spec[$key] = $value;
             }

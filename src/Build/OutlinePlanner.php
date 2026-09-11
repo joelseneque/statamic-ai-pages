@@ -26,7 +26,7 @@ class OutlinePlanner
         protected ExemplarSampler $exemplars,
     ) {}
 
-    public function plan(BuildRequest $request, SetCatalogue $catalogue): array
+    public function plan(BuildRequest $request, SetCatalogue $catalogue, array $blueprint = []): array
     {
         $handles = $catalogue->handles();
 
@@ -36,12 +36,19 @@ class OutlinePlanner
             );
         }
 
+        $companions = CompanionCollections::describe($blueprint);
+
         $system = array_merge(
             [['type' => 'text', 'text' => $this->systemPreamble()]],
             $this->instructions->systemBlocks($request->collection),
             [[
                 'type' => 'text',
-                'text' => "# BLOCKS AVAILABLE IN THIS COLLECTION\n\n".$catalogue->toMarkdown(),
+                'text' => "# BLOCKS AVAILABLE IN THIS COLLECTION\n\n".$catalogue->toMarkdown()
+                    .($companions
+                        ? "\n\n# OTHER ENTRIES THIS PAGE MAY CREATE\n\n{$companions}"
+                            ."\n\nOn this site these are separate entries, not text on the page. If the page needs "
+                            ."them, plan them in `companion_entries` and they will be written and linked for you."
+                        : ''),
                 'cache_control' => ['type' => 'ephemeral'],
             ]],
         );
@@ -70,8 +77,9 @@ class OutlinePlanner
             system: $system,
             messages: [['role' => 'user', 'content' => $content]],
             toolName: 'plan_page',
-            toolDescription: 'Record the plan for the page: its identity and the ordered list of blocks it is built from.',
-            schema: $this->schema($handles, $request),
+            toolDescription: 'Record the plan for the page: its identity, the ordered list of blocks it is built from, '
+                .'and any supporting entries it needs in other collections.',
+            schema: $this->schema($handles, $request, CompanionCollections::handles($blueprint)),
         );
     }
 
@@ -100,7 +108,7 @@ class OutlinePlanner
         TEXT;
     }
 
-    protected function schema(array $handles, BuildRequest $request): array
+    protected function schema(array $handles, BuildRequest $request, array $companionCollections = []): array
     {
         $verbatim = $request->mode === BuildRequest::MODE_VERBATIM;
 
@@ -111,7 +119,7 @@ class OutlinePlanner
             : 'The slice of the source material this section is based on. Quote it rather than summarising, so '
                 .'the writer works from the original.';
 
-        return [
+        $schema = [
             'type' => 'object',
             'properties' => [
                 'title' => [
@@ -172,5 +180,38 @@ class OutlinePlanner
             'required' => ['title', 'slug', 'summary', 'sections'],
             'additionalProperties' => false,
         ];
+
+        if ($companionCollections) {
+            $schema['properties']['companion_entries'] = [
+                'type' => 'array',
+                'description' => 'Supporting entries this page needs that live in their own collections rather '
+                    .'than on the page — most often its FAQs. They are written and linked for you, so plan them '
+                    .'here and then reference them from the block that uses them. Leave empty if the page needs none.',
+                'maxItems' => 20,
+                'items' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'collection' => [
+                            'type' => 'string',
+                            'enum' => $companionCollections,
+                        ],
+                        'title' => [
+                            'type' => 'string',
+                            'description' => 'The entry\'s title. For an FAQ this is the question, written the way '
+                                .'a reader would ask it.',
+                        ],
+                        'brief' => [
+                            'type' => 'string',
+                            'description' => 'What this entry must say — enough for it to be written without '
+                                .'seeing the rest of the page.',
+                        ],
+                    ],
+                    'required' => ['collection', 'title', 'brief'],
+                    'additionalProperties' => false,
+                ],
+            ];
+        }
+
+        return $schema;
     }
 }

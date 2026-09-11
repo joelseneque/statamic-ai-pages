@@ -28,6 +28,7 @@ class PageBuilder
         protected OutlinePlanner $planner,
         protected Hydrator $hydrator,
         protected Conventions $conventions,
+        protected CompanionBuilder $companions,
     ) {}
 
     public function onProgress(Closure $callback): self
@@ -53,10 +54,29 @@ class PageBuilder
         }
 
         $this->progress('Planning the page');
-        $outline = $this->planner->plan($request, $catalogue);
+        $outline = $this->planner->plan($request, $catalogue, $blueprint);
 
         $coercer = ValueCoercer::make($request->site, $request->collection);
         $contentField = $this->contentField($blueprint, $outline);
+
+        // Supporting entries are written first so that by the time a block that
+        // references them is filled in, they genuinely exist and can be picked
+        // like any other entry.
+        $companions = [];
+        $companionWarnings = [];
+
+        if ($planned = $outline['companion_entries'] ?? []) {
+            $result = $this->companions->build(
+                $request,
+                $planned,
+                CompanionCollections::handles($blueprint),
+                $outline,
+                fn ($message, $meta) => $this->progress($message, $meta),
+            );
+
+            $companions = $result['created'];
+            $companionWarnings = $result['warnings'];
+        }
 
         // Everything outside the page-builder field: hero, SEO, settings.
         $this->progress('Writing the page settings');
@@ -116,7 +136,8 @@ class PageBuilder
             outline: $outline,
             sections: $sections,
             data: $data,
-            warnings: $coercer->warnings(),
+            companions: $companions,
+            warnings: array_merge($companionWarnings, $coercer->warnings()),
             fidelity: $fidelity,
             usage: $this->client->usage(),
             cost: $this->client->estimatedCost(),

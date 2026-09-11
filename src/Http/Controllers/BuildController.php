@@ -9,6 +9,7 @@ use Joelseneque\AiPages\Jobs\BuildPageJob;
 use Joelseneque\AiPages\Jobs\JobStore;
 use Joelseneque\AiPages\Schema\BlueprintCompiler;
 use Joelseneque\AiPages\Schema\SetCatalogue;
+use Joelseneque\AiPages\Support\QueueStatus;
 use Statamic\Contracts\Entries\Collection as CollectionContract;
 use Statamic\Facades\Collection as CollectionFacade;
 use Statamic\Facades\Site;
@@ -25,6 +26,8 @@ class BuildController extends Controller
             'inventory' => $instructions->inventory(),
             'recent' => array_slice($jobs->recent(8), 0, 8),
             'model' => config('ai-pages.model'),
+            'runsInline' => QueueStatus::runsInline(),
+            'suggestedQueue' => QueueStatus::suggestedConnection(),
         ]);
     }
 
@@ -40,6 +43,8 @@ class BuildController extends Controller
             'instructionsReady' => $this->instructionsReady(),
             'maxUploadMb' => config('ai-pages.sources.max_upload_mb'),
             'allowedExtensions' => config('ai-pages.sources.allowed_extensions'),
+            'runsInline' => QueueStatus::runsInline(),
+            'suggestedQueue' => QueueStatus::suggestedConnection(),
         ]);
     }
 

@@ -18,6 +18,17 @@
         <a href="{{ cp_route('ai-pages.jobs') }}" class="aip-link">History</a>
     </div>
 
+    @if ($stalled)
+        <x-ai-pages::notice type="warning">
+            <strong>Nothing has picked this up.</strong>
+            <p>
+                It was queued on <code class="aip-inline">{{ $queueConnection }}</code> but no worker has
+                started it. Run one and it will be collected:
+            </p>
+            <code class="aip-code">php artisan queue:work {{ $queueConnection }} --tries=1 --timeout=1800</code>
+        </x-ai-pages::notice>
+    @endif
+
     @if (($job['status'] ?? null) === 'failed')
         <x-ai-pages::notice type="error">
             <strong>That didn't work.</strong>
@@ -113,6 +124,31 @@
                             @foreach ($fidelity['missing'] as $missing)<li>“{{ $missing }}”</li>@endforeach
                         </ul>
                     @endif
+                </div>
+            @endif
+
+            @if ($companions = $job['companions'] ?? [])
+                <div class="aip-card">
+                    <h2 class="aip-h2">Supporting entries</h2>
+                    <p class="aip-hint" style="margin-bottom:1rem">
+                        Written as entries in their own collections and linked from the page.
+                    </p>
+                    <div class="aip-rows">
+                        @foreach ($companions as $companion)
+                            <div class="aip-row">
+                                <span>
+                                    @if ($companion['edit_url'] ?? null)
+                                        <a class="aip-link" href="{{ $companion['edit_url'] }}">{{ $companion['title'] }}</a>
+                                    @else
+                                        {{ $companion['title'] }}
+                                    @endif
+                                    <span class="aip-tag">{{ $companion['collection'] }}</span>
+                                    @if ($companion['reused'] ?? false)<span class="aip-tag">already existed</span>@endif
+                                </span>
+                                <span class="aip-meta aip-mono">{{ $companion['slug'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 

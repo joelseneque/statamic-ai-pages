@@ -25,6 +25,8 @@ class BuildRequest
         public ?string $parent = null,
         public bool $publish = false,
         public ?int $maxSections = null,
+        /** Plan and write nothing — not the page, and not its supporting entries. */
+        public bool $dry = false,
     ) {}
 
     public static function fromArray(array $input, SourceBundle $sources): self
@@ -42,6 +44,7 @@ class BuildRequest
             parent: $input['parent'] ?? null,
             publish: (bool) ($input['publish'] ?? false),
             maxSections: isset($input['max_sections']) ? (int) $input['max_sections'] : null,
+            dry: (bool) ($input['dry'] ?? false),
         );
     }
 

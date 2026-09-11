@@ -3,6 +3,7 @@
 namespace Joelseneque\AiPages\Http\Controllers;
 
 use Joelseneque\AiPages\Jobs\JobStore;
+use Joelseneque\AiPages\Support\QueueStatus;
 use Statamic\Facades\Entry;
 
 class JobController extends Controller
@@ -25,6 +26,8 @@ class JobController extends Controller
         return view('ai-pages::jobs.show', [
             'job' => $record,
             'entry' => ($id = $record['entry_id'] ?? null) ? Entry::find($id) : null,
+            'stalled' => QueueStatus::looksStalled($record),
+            'queueConnection' => QueueStatus::connection(),
         ]);
     }
 

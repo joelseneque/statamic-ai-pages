@@ -14,6 +14,10 @@
         </div>
     </div>
 
+    @if ($runsInline)
+        <x-ai-pages::inline-warning :suggested="$suggestedQueue" />
+    @endif
+
     @if (session('success'))
         <x-ai-pages::notice type="success">{{ session('success') }}</x-ai-pages::notice>
     @endif

@@ -56,6 +56,7 @@ class BuildPageCommand extends Command
             mode: $this->option('mode'),
             title: $this->option('title'),
             brief: $this->option('brief'),
+            dry: (bool) $this->option('dry'),
         );
 
         $this->info("Building a {$request->mode} draft in [{$request->collection}] with ".$client->model());
@@ -70,6 +71,21 @@ class BuildPageCommand extends Command
 
         foreach ($result->sections as $i => $section) {
             $this->line(sprintf('  %2d. %s', $i + 1, $section['set']));
+        }
+
+        if ($result->companions) {
+            $this->newLine();
+            $this->info('Supporting entries:');
+
+            foreach ($result->companions as $companion) {
+                $this->line(sprintf(
+                    '  %s %s  <fg=gray>(%s)%s</>',
+                    ($companion['reused'] ?? false) ? '·' : '+',
+                    $companion['title'],
+                    $companion['collection'],
+                    ($companion['planned_only'] ?? false) ? ' — not written, dry run' : '',
+                ));
+            }
         }
 
         if ($result->warnings) {
