@@ -18,9 +18,11 @@ class TweakWithAi extends Action
 
     public function visibleTo($item)
     {
-        return $item instanceof Entry
-            && app(Client::class)->configured()
-            && user()?->can('edit ai pages');
+        // Permissions belong in authorize() — Statamic's ActionRepository calls
+        // it with the current user immediately after this. Reaching for a user
+        // here is both redundant and, since there is no global user() helper,
+        // fatal on every screen that lists actions.
+        return $item instanceof Entry && app(Client::class)->configured();
     }
 
     public function visibleToBulk($items)
