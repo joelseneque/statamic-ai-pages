@@ -9,6 +9,7 @@ use Joelseneque\AiPages\Jobs\BuildPageJob;
 use Joelseneque\AiPages\Jobs\JobStore;
 use Joelseneque\AiPages\Schema\BlueprintCompiler;
 use Joelseneque\AiPages\Schema\SetCatalogue;
+use Statamic\Contracts\Entries\Collection as CollectionContract;
 use Statamic\Facades\Collection as CollectionFacade;
 use Statamic\Facades\Site;
 
@@ -87,13 +88,14 @@ class BuildController extends Controller
      * The set menu for a collection, so the build form can show what it will
      * be choosing from before anything is spent.
      */
-    public function sets(string $collection, BlueprintCompiler $compiler)
+    public function sets(CollectionContract $collection, BlueprintCompiler $compiler)
     {
+        // {collection} is bound on every CP route, so this arrives resolved.
         $this->authorize('build ai pages');
 
-        abort_unless(array_key_exists($collection, $this->collections()), 404);
+        abort_unless(array_key_exists($collection->handle(), $this->collections()), 404);
 
-        $compiled = $compiler->forCollection($collection);
+        $compiled = $compiler->forCollection($collection->handle());
 
         return collect($compiled['blueprints'])->map(fn ($bp) => [
             'title' => $bp['title'],
