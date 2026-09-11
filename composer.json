@@ -1,10 +1,19 @@
 {
     "name": "joelseneque/ai-pages",
     "description": "Build and edit Statamic entries with Claude — blueprint-aware AI page building from documents, links, designs or plain text.",
-    "keywords": ["statamic", "ai", "anthropic", "claude", "content", "page-builder"],
+    "keywords": [
+        "statamic",
+        "ai",
+        "anthropic",
+        "claude",
+        "content",
+        "page-builder"
+    ],
     "license": "MIT",
     "authors": [
-        { "name": "Joel Seneque" }
+        {
+            "name": "Joel Seneque"
+        }
     ],
     "autoload": {
         "psr-4": {
@@ -20,7 +29,7 @@
         "php": "^8.2",
         "statamic/cms": "^5.0 || ^6.0",
         "league/commonmark": "^2.4",
-        "ueberdosis/tiptap-php": "^1.4"
+        "ueberdosis/tiptap-php": "^1.4 || ^2.0"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0 || ^10.0"
