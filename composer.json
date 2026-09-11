@@ -1,0 +1,47 @@
+{
+    "name": "joelseneque/ai-pages",
+    "description": "Build and edit Statamic entries with Claude — blueprint-aware AI page building from documents, links, designs or plain text.",
+    "keywords": ["statamic", "ai", "anthropic", "claude", "content", "page-builder"],
+    "license": "MIT",
+    "authors": [
+        { "name": "Joel Seneque" }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Joelseneque\\AiPages\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Joelseneque\\AiPages\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "statamic/cms": "^5.0 || ^6.0",
+        "league/commonmark": "^2.4",
+        "ueberdosis/tiptap-php": "^1.4"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0 || ^10.0"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "AI Pages",
+            "description": "Build and edit Statamic entries with Claude"
+        },
+        "laravel": {
+            "providers": [
+                "Joelseneque\\AiPages\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
