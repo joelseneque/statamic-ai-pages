@@ -23,12 +23,37 @@
     --aip-gap: 1.5rem;
 
     color: var(--aip-fg);
-    max-width: 56rem;
     font-size: 0.875rem;
     line-height: 1.6;
+
+    /* The CP shell supplies the horizontal gutter; we only add the vertical
+       breathing room it leaves to the page itself. */
+    padding: 0.5rem 0 4rem;
 }
 
-.aip--wide { max-width: 72rem; }
+/* ------------------------------------------------------------------ layout */
+
+.aip-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: var(--aip-gap);
+    align-items: start;
+}
+
+.aip-side {
+    position: sticky;
+    top: 1rem;
+}
+
+.aip-main > :last-child,
+.aip-side > :last-child { margin-bottom: 0; }
+
+/* One column once the sidebar would be squeezed — including a CP window with
+   the nav open on a laptop, which is the common case. */
+@media (max-width: 78rem) {
+    .aip-layout { grid-template-columns: minmax(0, 1fr); }
+    .aip-side { position: static; }
+}
 
 .dark .aip {
     --aip-fg: var(--color-gray-100, #f3f4f6);
@@ -62,8 +87,10 @@
 .aip-lede {
     color: var(--aip-fg-soft);
     margin: 0.375rem 0 0;
-    max-width: 60ch;
+    max-width: 68ch;
 }
+
+.aip-prose { max-width: 68ch; }
 
 .aip-h2 {
     font-size: 1rem;
@@ -82,6 +109,8 @@
 }
 
 /* ------------------------------------------------------------------- cards */
+
+.aip-card--tight { padding: 1.125rem; }
 
 .aip-card {
     background: var(--aip-bg);
@@ -212,6 +241,9 @@
 .aip-file { font-size: 0.8125rem; color: var(--aip-fg-soft); }
 
 .aip-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Inside the narrow sidebar, paired fields always stack. */
+.aip-side .aip-grid { grid-template-columns: minmax(0, 1fr); }
 
 @media (max-width: 40rem) {
     .aip-grid { grid-template-columns: minmax(0, 1fr); }
@@ -351,3 +383,5 @@ code.aip-inline {
 .aip-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 .aip-actions--split { justify-content: space-between; }
 .aip-footnote { color: var(--aip-fg-faint); font-size: 0.75rem; margin: 0; }
+
+.aip-btn--block { width: 100%; justify-content: center; }

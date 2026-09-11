@@ -24,7 +24,7 @@
         @method('PATCH')
 
         <div class="aip-card">
-            <textarea name="contents" rows="30" class="aip-textarea aip-textarea--mono">{{ $contents }}</textarea>
+            <textarea name="contents" rows="34" class="aip-textarea aip-textarea--mono">{{ $contents }}</textarea>
         </div>
 
         <button type="submit" class="aip-btn aip-btn--primary">Save</button>

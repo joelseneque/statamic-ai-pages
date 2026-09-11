@@ -108,7 +108,7 @@ class ServiceProvider extends AddonServiceProvider
         Nav::extend(function ($nav) {
             $nav->content(__('ai-pages::messages.nav_title'))
                 ->route('ai-pages.index')
-                ->icon('sparkles')
+                ->icon('ai-spark')
                 ->can('build ai pages')
                 ->children([
                     $nav->item(__('ai-pages::messages.nav_build'))->route('ai-pages.build'),
